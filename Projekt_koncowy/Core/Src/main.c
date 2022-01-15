@@ -34,6 +34,19 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 BH1750_HandleTypeDef* hbh1750 = &hbh1750_1;
+
+
+typedef struct{
+	float Kp;
+	float Ki;
+	float Kd;
+	float dt;
+}pid_parametrs_t;
+
+typedef struct{
+	pid_parametrs_t p;
+	float previous_error, previous_integral;
+}pid_t;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -54,6 +67,9 @@ PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
 /* USER CODE BEGIN PV */
 uint16_t wypelnienie_PWM = 100;
+
+pid_t pid1 = {.p.Kp=1.2, .p.Ki = 0.002, .p.Kd=0, .p.dt = 1.0, .previous_error=0, .previous_integral=0};
+float set_point = 100.0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -70,15 +86,49 @@ static void MX_TIM2_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+float calculate_discrete_pid(pid_t* pid, float setpoint, float measured){
+	float u=0, P, I, D, error, integral, derivative;
+
+	error = setpoint-measured;
+
+	//proportional part
+	P = pid->p.Kp * error;
+
+	//integral part
+	integral = pid->previous_integral + (error+pid->previous_error) ; //numerical integrator without anti-windup
+	pid->previous_integral = integral;
+	I = pid->p.Ki*integral*(pid->p.dt/2.0);
+
+	//derivative part
+	derivative = (error - pid->previous_error)/pid->p.dt; //numerical derivative without filter
+	pid->previous_error = error;
+	D = pid->p.Kd*derivative;
+
+	//sum of all parts
+	u = P  + I + D; //without saturation
+
+	return u;
+}
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  /* User interface: low priority */
+
   if(htim->Instance == TIM2)
   {
   	char str_buffer[32];
   	int n;
 
 	float light = BH1750_ReadIlluminance_lux(hbh1750);
+
+	float pwm_duty_f = (999.0*calculate_discrete_pid(&pid1, set_point, light));
+	uint32_t pwm_duty =0;
+
+	if(pwm_duty_f<0) pwm_duty =0;
+	else if(pwm_duty>999) pwm_duty = 999;
+	else pwm_duty = pwm_duty_f;
+
+	__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, pwm_duty);
+
 	n = sprintf(str_buffer, "{\"Light\":%6d}", (int)light);
 
 	str_buffer[n] = '\r';
@@ -86,6 +136,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   	HAL_UART_Transmit(&huart3, (uint8_t*)str_buffer, n+2, 1000);
   }
 }
+
+
+
+
 /* USER CODE END 0 */
 
 /**
