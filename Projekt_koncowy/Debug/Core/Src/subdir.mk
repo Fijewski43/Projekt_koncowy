@@ -5,6 +5,9 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../Core/Src/bh1750.c \
+../Core/Src/bh1750_config.c \
+../Core/Src/i2c.c \
 ../Core/Src/main.c \
 ../Core/Src/stm32f7xx_hal_msp.c \
 ../Core/Src/stm32f7xx_it.c \
@@ -13,6 +16,9 @@ C_SRCS += \
 ../Core/Src/system_stm32f7xx.c 
 
 OBJS += \
+./Core/Src/bh1750.o \
+./Core/Src/bh1750_config.o \
+./Core/Src/i2c.o \
 ./Core/Src/main.o \
 ./Core/Src/stm32f7xx_hal_msp.o \
 ./Core/Src/stm32f7xx_it.o \
@@ -21,6 +27,9 @@ OBJS += \
 ./Core/Src/system_stm32f7xx.o 
 
 C_DEPS += \
+./Core/Src/bh1750.d \
+./Core/Src/bh1750_config.d \
+./Core/Src/i2c.d \
 ./Core/Src/main.d \
 ./Core/Src/stm32f7xx_hal_msp.d \
 ./Core/Src/stm32f7xx_it.d \
