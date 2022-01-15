@@ -1,0 +1,10 @@
+23:02:52 **** Incremental Build of configuration Debug for project L10 ****
+make -j8 all 
+arm-none-eabi-size   L10.elf 
+   text	   data	    bss	    dec	    hex	filename
+  22432	    124	   2756	  25312	   62e0	L10.elf
+Finished building: default.size.stdout
+ 
+
+23:02:52 Build Finished. 0 errors, 0 warnings. (took 382ms)
+
