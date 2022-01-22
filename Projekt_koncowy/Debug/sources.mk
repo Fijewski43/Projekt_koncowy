@@ -23,5 +23,4 @@ SUBDIRS := \
 Core/Src \
 Core/Startup \
 Drivers/STM32F7xx_HAL_Driver/Src \
-Components/Src \
 

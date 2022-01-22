@@ -71,8 +71,11 @@ PCD_HandleTypeDef hpcd_USB_OTG_FS;
 /* USER CODE BEGIN PV */
 uint16_t wypelnienie_PWM = 100;
 
-pid_t pid1 = {.p.Kp=1.2, .p.Ki = 0.002, .p.Kd=0, .p.dt = 1.0, .previous_error=0, .previous_integral=0};
+pid_t pid1 = {.p.Kp=2.0, .p.Ki = 1, .p.Kd=0, .p.dt = 0.1, .previous_error=0, .previous_integral=0};
 float set_point = 100.0;
+float light =0;
+
+char msg_str[32];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -80,6 +83,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USB_OTG_FS_PCD_Init(void);
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -89,6 +93,7 @@ static void MX_USB_OTG_FS_PCD_Init(void);
 
 float calculate_discrete_pid(pid_t* pid, float setpoint, float measured){
 	float u=0, P, I, D, error, integral, derivative;
+
 
 	error = setpoint-measured;
 
@@ -108,7 +113,12 @@ float calculate_discrete_pid(pid_t* pid, float setpoint, float measured){
 	//sum of all parts
 	u = P  + I + D; //without saturation
 
-	return u;
+	float u_sat = 0;
+	if(u<0) u_sat =0;
+	else if(u>999) u_sat = 999;
+	else u_sat = u;
+
+	return u_sat;
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
@@ -119,14 +129,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   	char str_buffer[32];
   	int n;
 
-	float light = BH1750_ReadIlluminance_lux(hbh1750);
+	light = BH1750_ReadIlluminance_lux(hbh1750);
 
-	float pwm_duty_f = (999.0*calculate_discrete_pid(&pid1, set_point, light));
-	uint32_t pwm_duty =0;
-
-	if(pwm_duty_f<0) pwm_duty =0;
-	else if(pwm_duty>999) pwm_duty = 999;
-	else pwm_duty = pwm_duty_f;
+	float pwm_duty_f = (calculate_discrete_pid(&pid1, set_point, light));
+	uint32_t pwm_duty = (int)pwm_duty_f;
 
 	__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, pwm_duty);
 
@@ -138,9 +144,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   }
 }
 
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if(huart->Instance == USART3)
+	{
+		HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_3);
+		sscanf((char*)msg_str, "%f", &set_point);
 
+		HAL_UART_Receive_IT(&huart3, (uint8_t*)msg_str, strlen("999"));
 
-
+		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+	}
+}
 /* USER CODE END 0 */
 
 /**
@@ -180,12 +195,10 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   //PWM
-  // HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-
-
-   HAL_TIM_Base_Start_IT(&htim2);
-   BH1750_Init(hbh1750);
-
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+  HAL_UART_Receive_IT(&huart3, (uint8_t*)msg_str, strlen("999"));
+  HAL_TIM_Base_Start_IT(&htim2);
+  BH1750_Init(hbh1750);
 
   /* USER CODE END 2 */
 
@@ -255,11 +268,13 @@ void SystemClock_Config(void)
     Error_Handler();
   }
 }
- /*
-  * @brief USART3 Initialization Function
+
+/**
+  * @brief I2C1 Initialization Function
   * @param None
   * @retval None
   */
+
 static void MX_USART3_UART_Init(void)
 {
 

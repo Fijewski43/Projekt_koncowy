@@ -124,6 +124,7 @@ void Error_Handler(void);
 #define LCD_D4_GPIO_Port GPIOB
 #define LCD_D6_Pin GPIO_PIN_5
 #define LCD_D6_GPIO_Port GPIOB
+#define LINE_MAX_LENGTH 10
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
