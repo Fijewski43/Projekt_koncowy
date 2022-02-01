@@ -26,7 +26,7 @@
 #include "bh1750_config.h"
 #include "tim.h"
 #include <string.h>
-
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,7 +49,7 @@ typedef struct{
 typedef struct{
 	pid_parametrs_t p;
 	float previous_error, previous_integral;
-}pid_t;
+}pid;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -72,7 +72,7 @@ PCD_HandleTypeDef hpcd_USB_OTG_FS;
 /* USER CODE BEGIN PV */
 uint16_t wypelnienie_PWM = 100;
 
-pid_t pid1 = {.p.Kp=2.0, .p.Ki = 1, .p.Kd=0, .p.dt = 0.1, .previous_error=0, .previous_integral=0};
+pid pid1 = {.p.Kp=1, .p.Ki = 1, .p.Kd=0, .p.dt = 0.1, .previous_error=0, .previous_integral=0};
 float set_point = 100.0;
 float light =0;
 
@@ -92,69 +92,80 @@ static void MX_USB_OTG_FS_PCD_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-//float calculate_discrete_pid(pid_t* pid, float setpoint, float measured){
-//	float u=0, P, I, D, error, integral, derivative;
-//
-//
-//	error = setpoint-measured;
-//
-//	//proportional part
-//	P = pid->p.Kp * error;
-//
-//	//integral part
-//	integral = pid->previous_integral + (error+pid->previous_error) ; //numerical integrator without anti-windup
-//	pid->previous_integral = integral;
-//	I = pid->p.Ki*integral*(pid->p.dt/2.0);
-//
-//	//derivative part
-//	derivative = (error - pid->previous_error)/pid->p.dt; //numerical derivative without filter
-//	pid->previous_error = error;
-//	D = pid->p.Kd*derivative;
-//
-//	//sum of all parts
-//	u = P  + I + D; //without saturation
-//
-//	float u_sat = 0;
-//	if(u<0) u_sat =0;
-//	else if(u>999) u_sat = 999;
-//	else u_sat = u;
-//
-//	return u_sat;
-//}
-//
-//void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-//{
-//
-//  if(htim->Instance == TIM2)
-//  {
-//  	char str_buffer[32];
-//  	int n;
-//
-//	light = BH1750_ReadIlluminance_lux(hbh1750);
-//
-//	float pwm_duty_f = (calculate_discrete_pid(&pid1, set_point, light));
-//	uint32_t pwm_duty = (int)pwm_duty_f;
-//
-//	__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, pwm_duty);
-//
-//	n = sprintf(str_buffer, "{\"Light\":%6d}", (int)light);
-//
-//	str_buffer[n] = '\r';
-//	str_buffer[n+1] = '\n';
-//  	HAL_UART_Transmit(&huart3, (uint8_t*)str_buffer, n+2, 1000);
-//  }
-//}
+float calculate_discrete_pid(pid* pid, float setpoint, float measured){
+	float u=0, P, I, D, error, integral, derivative;
+
+
+	error = setpoint-measured;
+
+	//proportional part
+	P = pid->p.Kp * error;
+
+	//integral part
+	integral = pid->previous_integral + (error+pid->previous_error) ; //numerical integrator without anti-windup
+	pid->previous_integral = integral;
+	I = pid->p.Ki*integral*(pid->p.dt/2.0);
+
+	//derivative part
+	derivative = (error - pid->previous_error)/pid->p.dt; //numerical derivative without filter
+	pid->previous_error = error;
+	D = pid->p.Kd*derivative;
+
+	//sum of all parts
+	u = P  + I + D; //without saturation
+
+	float u_sat = 0;
+	if(u<0) u_sat =0;
+	else if(u>1998) u_sat = 1998;
+	else u_sat = u;
+
+	return u_sat;
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+
+  if(htim->Instance == TIM2)
+  {
+  	char str_buffer[32];
+  	int n;
+
+	light = BH1750_ReadIlluminance_lux(hbh1750);
+
+	float pwm_duty_f = (calculate_discrete_pid(&pid1, set_point, light));
+	uint32_t pwm_duty = (int)pwm_duty_f;
+
+	if(pwm_duty<=999)
+	{
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, pwm_duty);
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0);
+	}
+	else
+	{
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, 999);
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, pwm_duty%999);
+	}
+
+	n = sprintf(str_buffer, "{\"Light\":%6d}", (int)light);
+
+	str_buffer[n] = '\r';
+	str_buffer[n+1] = '\n';
+  	HAL_UART_Transmit(&huart3, (uint8_t*)str_buffer, n+2, 1000);
+  }
+}
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if(huart->Instance == USART3)
 	{
 		HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_3);
-		sscanf((char*)msg_str, "%f", &set_point);
+		HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_2);
+		sscanf(msg_str, "%f", &set_point); // @suppress("Float formatting support")
 
 		HAL_UART_Receive_IT(&huart3, (uint8_t*)msg_str, strlen("999"));
 
 		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
 	}
 }
 /* USER CODE END 0 */
@@ -188,16 +199,18 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART3_UART_Init();
-  MX_USB_OTG_FS_PCD_Init();
+  MX_USB_OTG_FS_PCD_Init();\
   MX_TIM3_Init();
-  MX_I2C1_Init();
-  MX_TIM2_Init();
   MX_TIM5_Init();
+  MX_TIM2_Init();
+  MX_I2C1_Init();
+
   /* USER CODE BEGIN 2 */
 
   //PWM
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-  HAL_UART_Receive_IT(&huart3, (uint8_t*)msg_str, 4);
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+  HAL_UART_Receive_IT(&huart3, (uint8_t*)msg_str, strlen("999"));
   HAL_TIM_Base_Start_IT(&htim2);
   BH1750_Init(hbh1750);
 
@@ -272,6 +285,12 @@ void SystemClock_Config(void)
 
 /**
   * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
+
+/**
+  * @brief TIM2 Initialization Function
   * @param None
   * @retval None
   */
