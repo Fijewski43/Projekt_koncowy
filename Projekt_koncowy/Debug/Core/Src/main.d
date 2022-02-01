@@ -33,7 +33,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_ll_usb.h \
  ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_pcd_ex.h \
  ../Core/Inc/i2c.h ../Core/Inc/main.h ../Core/Inc/bh1750_config.h \
- ../Core/Inc/bh1750.h ../Core/Inc/tim.h
+ ../Core/Inc/bh1750.h ../Core/Inc/tim.h ../Core/Inc/lcd.h \
+ ../Core/Inc/lcd_config.h ../Core/Inc/lcd.h
 
 ../Core/Inc/main.h:
 
@@ -112,3 +113,9 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Inc/bh1750.h:
 
 ../Core/Inc/tim.h:
+
+../Core/Inc/lcd.h:
+
+../Core/Inc/lcd_config.h:
+
+../Core/Inc/lcd.h:

@@ -27,6 +27,8 @@
 #include "tim.h"
 #include <string.h>
 #include <stdio.h>
+#include "lcd.h"
+#include "lcd_config.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -211,6 +213,9 @@ int main(void)
   HAL_UART_Receive_IT(&huart3, (uint8_t*)msg_str, strlen("999"));
   HAL_TIM_Base_Start_IT(&htim2);
   BH1750_Init(hbh1750);
+
+  LCD_Init(&hlcd1);
+  LCD_printf(&hlcd1, "L%02d: CMSIS DSP");
 
   /* USER CODE END 2 */
 
