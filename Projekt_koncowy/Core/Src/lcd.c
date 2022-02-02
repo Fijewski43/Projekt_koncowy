@@ -267,3 +267,4 @@ void LCD_printf(LCD_HandleTypeDef* hlcd, const char* format, ...)
   va_end(args);
 }
 #endif
+

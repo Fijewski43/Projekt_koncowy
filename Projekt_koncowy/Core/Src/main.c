@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
+ * All rights reserved.</center></h2>
+ *
+ * This software component is licensed by ST under BSD 3-Clause license,
+ * the "License"; You may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *                        opensource.org/licenses/BSD-3-Clause
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -38,20 +38,19 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-BH1750_HandleTypeDef* hbh1750 = &hbh1750_1;
+BH1750_HandleTypeDef *hbh1750 = &hbh1750_1;
 
-
-typedef struct{
+typedef struct {
 	float Kp;
 	float Ki;
 	float Kd;
 	float dt;
-}pid_parametrs_t;
+} pid_parametrs_t;
 
-typedef struct{
+typedef struct {
 	pid_parametrs_t p;
 	float previous_error, previous_integral;
-}pid;
+} pid;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -65,6 +64,7 @@ I2C_HandleTypeDef hi2c1;
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim5;
 
 UART_HandleTypeDef huart3;
@@ -72,13 +72,19 @@ UART_HandleTypeDef huart3;
 PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
 /* USER CODE BEGIN PV */
+
+LCD_HandleTypeDef hlcd1;
+
 uint16_t wypelnienie_PWM = 100;
 
-pid pid1 = {.p.Kp=1, .p.Ki = 1, .p.Kd=0, .p.dt = 0.1, .previous_error=0, .previous_integral=0};
+pid pid1 = { .p.Kp = 0.5, .p.Ki = 1, .p.Kd = 0, .p.dt = 0.1, .previous_error = 0,
+		.previous_integral = 0 };
 float set_point = 100.0;
-float light =0;
-
+float light = 0;
+#define MAX_LENGTH 30
+char text[MAX_LENGTH];
 char msg_str[32];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -94,79 +100,85 @@ static void MX_USB_OTG_FS_PCD_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-float calculate_discrete_pid(pid* pid, float setpoint, float measured){
-	float u=0, P, I, D, error, integral, derivative;
+float calculate_discrete_pid(pid *pid, float setpoint, float measured) {
+	float u = 0, P, I, D, error, integral, derivative;
 
-
-	error = setpoint-measured;
+	error = setpoint - measured;
 
 	//proportional part
 	P = pid->p.Kp * error;
 
 	//integral part
-	integral = pid->previous_integral + (error+pid->previous_error) ; //numerical integrator without anti-windup
+	integral = pid->previous_integral + (error + pid->previous_error); //numerical integrator without anti-windup
 	pid->previous_integral = integral;
-	I = pid->p.Ki*integral*(pid->p.dt/2.0);
+	I = pid->p.Ki * integral * (pid->p.dt / 2.0);
 
 	//derivative part
-	derivative = (error - pid->previous_error)/pid->p.dt; //numerical derivative without filter
+	derivative = (error - pid->previous_error) / pid->p.dt; //numerical derivative without filter
 	pid->previous_error = error;
-	D = pid->p.Kd*derivative;
+	D = pid->p.Kd * derivative;
 
 	//sum of all parts
-	u = P  + I + D; //without saturation
+	u = P + I + D; //without saturation
 
 	float u_sat = 0;
-	if(u<0) u_sat =0;
-	else if(u>1998) u_sat = 1998;
-	else u_sat = u;
+	if (u < 0)
+		u_sat = 0;
+	else if (u > 1998)
+		u_sat = 1998;
+	else
+		u_sat = u;
 
 	return u_sat;
 }
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
-  if(htim->Instance == TIM2)
-  {
-  	char str_buffer[32];
-  	int n;
+	if (htim->Instance == TIM4) {
+		__HAL_TIM_SET_AUTORELOAD(htim, 100);
 
-	light = BH1750_ReadIlluminance_lux(hbh1750);
 
-	float pwm_duty_f = (calculate_discrete_pid(&pid1, set_point, light));
-	uint32_t pwm_duty = (int)pwm_duty_f;
+					LCD_SetCursor(&hlcd1, 0, 1);
+					snprintf(text, MAX_LENGTH, "%.2f", light);
+					LCD_printf(&hlcd1, text);
 
-	if(pwm_duty<=999)
-	{
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, pwm_duty);
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
-	}
-	else
-	{
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, 999);
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, pwm_duty%999);
 	}
 
-	n = sprintf(str_buffer, "{\"Light\":%6d}", (int)light);
+	if (htim->Instance == TIM2) {
+		char str_buffer[32];
+		int n;
 
-	str_buffer[n] = '\r';
-	str_buffer[n+1] = '\n';
-  	HAL_UART_Transmit(&huart3, (uint8_t*)str_buffer, n+2, 1000);
-  }
+		light = BH1750_ReadIlluminance_lux(hbh1750);
+
+		float pwm_duty_f = (calculate_discrete_pid(&pid1, set_point, light));
+		uint32_t pwm_duty = (int) pwm_duty_f;
+
+		if (pwm_duty <= 999) {
+			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, pwm_duty);
+			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
+		} else {
+			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, 999);
+			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, pwm_duty % 999);
+		}
+
+		n = sprintf(str_buffer, "{\"Light\":%6d}", (int) light);
+
+		str_buffer[n] = '\r';
+		str_buffer[n + 1] = '\n';
+		HAL_UART_Transmit(&huart3, (uint8_t*) str_buffer, n + 2, 1000);
+	}
 }
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-	if(huart->Instance == USART3)
-	{
-		HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_3);
-		HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
-		sscanf(msg_str, "%f", &set_point); // @suppress("Float formatting support")
-		HAL_UART_Receive_IT(&huart3, (uint8_t*)msg_str, strlen("999"));
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+	if (huart->Instance == USART3) {
 
-		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+		HAL_TIM_Base_Stop_IT(&htim2);
+			HAL_TIM_Base_Stop_IT(&htim4);
+		sscanf(msg_str, "%f", &set_point); // @suppress("Float formatting support")
+		HAL_UART_Receive_IT(&huart3, (uint8_t*) msg_str, strlen("999"));
+
+		HAL_TIM_Base_Start_IT(&htim2);
+			HAL_TIM_Base_Start_IT(&htim4);
 	}
 }
 /* USER CODE END 0 */
@@ -205,28 +217,31 @@ int main(void)
   MX_I2C1_Init();
   MX_TIM2_Init();
   MX_TIM5_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
-  //PWM
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-  HAL_UART_Receive_IT(&huart3, (uint8_t*)msg_str, strlen("999"));
-  HAL_TIM_Base_Start_IT(&htim2);
-  BH1750_Init(hbh1750);
+	//PWM
 
-  LCD_Init(&hlcd1);
-  LCD_printf(&hlcd1, "L%02d: CMSIS DSP");
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+	HAL_UART_Receive_IT(&huart3, (uint8_t*) msg_str, strlen("999"));
+	BH1750_Init(hbh1750);
+	LCD_Init(&hlcd1);
+
+	HAL_TIM_Base_Start_IT(&htim2);
+	HAL_TIM_Base_Start_IT(&htim4);
+
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
+	while (1) {
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
+	}
   /* USER CODE END 3 */
 }
 
@@ -286,12 +301,12 @@ void SystemClock_Config(void)
   }
 }
 
+
 /**
-  * @brief I2C1 Initialization Function
+  * @brief USART3 Initialization Function
   * @param None
   * @retval None
   */
-
 static void MX_USART3_UART_Init(void)
 {
 
@@ -478,11 +493,10 @@ static void MX_GPIO_Init(void)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-  __disable_irq();
-  while (1)
-  {
-  }
+	/* User can add his own implementation to report the HAL error return state */
+	__disable_irq();
+	while (1) {
+	}
   /* USER CODE END Error_Handler_Debug */
 }
 
@@ -497,7 +511,7 @@ void Error_Handler(void)
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
+	/* User can add his own implementation to report the file name and line number,
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }
