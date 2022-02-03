@@ -33,6 +33,7 @@
 #include "lcd_config.h"
 #include "pid.h"
 
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -68,10 +69,7 @@ PCD_HandleTypeDef hpcd_USB_OTG_FS;
 /* USER CODE BEGIN PV */
 
 BH1750_HandleTypeDef *hbh1750 = &hbh1750_1;
-LCD_HandleTypeDef hlcd1;
 
-pid pid1 = { .p.Kp = 0.5, .p.Ki = 1, .p.Kd = 0, .p.dt = 0.1,
-		.previous_error = 0, .previous_integral = 0 };
 
 uint16_t wypelnienie_PWM = 100;
 float set_point = 100.0;
@@ -79,6 +77,10 @@ float light = 0;
 char text[MAX_LENGTH];
 char msg_str[32];
 _Bool uart_flag = 1;
+
+pid pid1 = { .p.Kp = 0.5, .p.Ki = 1, .p.Kd = 0, .p.dt = 0.1,
+		.previous_error = 0, .previous_integral = 0 };
+
 
 /* USER CODE END PV */
 
@@ -103,10 +105,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == USER_Btn_Pin) {
 		HAL_GPIO_TogglePin(GPIOB, LD1_Pin);
 		uart_flag = !uart_flag;
-		HAL_UART_Receive_IT(&huart3, (uint8_t*) msg_str, strlen("999"));
+		HAL_UART_Receive_IT(&huart3, (uint8_t*) msg_str, strlen("999."));
 	}
 	if(GPIO_Pin == GPIO_PIN_5) {
-		if((HAL_GPIO_ReadPin(GPIOF,GPIO_PIN_4))&&set_point<641)
+		if((HAL_GPIO_ReadPin(GPIOD,GPIO_PIN_4))&&set_point<641)
 			set_point = set_point + 10;
 		else if(set_point>10)
 			set_point = set_point - 10;
@@ -158,7 +160,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 		HAL_TIM_Base_Stop_IT(&htim4);
 
 		sscanf(msg_str, "%f", &set_point); // @suppress("Float formatting support")
-		HAL_UART_Receive_IT(&huart3, (uint8_t*) msg_str, strlen("999"));
+
+		for(int i=0; i<3; i++)
+		{
+			msg_str[i] = '\0';
+		}
+
+		HAL_UART_Receive_IT(&huart3, (uint8_t*) msg_str, strlen("999."));
 
 		HAL_TIM_Base_Start_IT(&htim2);
 		HAL_TIM_Base_Start_IT(&htim4);

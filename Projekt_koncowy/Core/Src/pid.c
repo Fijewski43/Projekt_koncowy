@@ -1,13 +1,38 @@
-/*
- * pid.c
- *
- *  Created on: 3 lut 2022
- *      Author: fijew
- */
+/**
+  ******************************************************************************
+  * @file    pid.c
+  * @author  Jakub Fijewski
+  * @version V1.0
+  * @date    03-Feb-2022
+  * @brief   Implementation of Discrete PID regulator
+  *
+  ******************************************************************************
+  */
 
+/* Includes ------------------------------------------------------------------*/
 #include "pid.h"
 
+/* Typedef -------------------------------------------------------------------*/
 
+/* Define --------------------------------------------------------------------*/
+
+/* Macro ---------------------------------------------------------------------*/
+
+/* Private variables ---------------------------------------------------------*/
+
+/* Public variables ----------------------------------------------------------*/
+
+/* Public function prototypes -----------------------------------------------*/
+float calculate_discrete_pid(pid *pid, float setpoint, float measured);
+
+
+/**
+ * @brief Calculate value of control signal by discrete PID regulator
+ * @param[in] pid Pid struct
+ * @param[in] float value of setpoint
+ * @param[in] float value of measurement
+ * @return value of control signal
+ */
 float calculate_discrete_pid(pid *pid, float setpoint, float measured) {
 	float u = 0, P, I, D, error, integral, derivative;
 
