@@ -23,14 +23,14 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include <string.h>
+#include <stdio.h>
+#include <stdbool.h>
 #include "i2c.h"
 #include "bh1750_config.h"
 #include "tim.h"
-#include <string.h>
-#include <stdio.h>
 #include "lcd.h"
 #include "lcd_config.h"
-#include <stdbool.h>
 
 /* USER CODE END Includes */
 
@@ -43,7 +43,6 @@
 /* USER CODE BEGIN PD */
 BH1750_HandleTypeDef *hbh1750 = &hbh1750_1;
 LCD_HandleTypeDef hlcd1;
-
 
 /* USER CODE END PD */
 
@@ -81,8 +80,8 @@ typedef struct {
 
 uint16_t wypelnienie_PWM = 100;
 
-pid pid1 = { .p.Kp = 0.5, .p.Ki = 1, .p.Kd = 0, .p.dt = 0.1, .previous_error = 0,
-		.previous_integral = 0 };
+pid pid1 = { .p.Kp = 0.5, .p.Ki = 1, .p.Kd = 0, .p.dt = 0.1,
+		.previous_error = 0, .previous_integral = 0 };
 
 float set_point = 100.0;
 float light = 0;
@@ -106,10 +105,8 @@ static void MX_USB_OTG_FS_PCD_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-void HAL_GPIO_EXTI_Callback ( uint16_t GPIO_Pin )
-{
-	if( GPIO_Pin == USER_Btn_Pin )
-	{
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+	if (GPIO_Pin == USER_Btn_Pin) {
 		HAL_GPIO_TogglePin(GPIOB, LD1_Pin);
 		uart_flag = !uart_flag;
 		HAL_UART_Receive_IT(&huart3, (uint8_t*) msg_str, strlen("999"));
@@ -185,7 +182,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-	if ((huart->Instance == USART3)&&uart_flag==1) {
+	if ((huart->Instance == USART3) && uart_flag == 1) {
 
 		HAL_TIM_Base_Stop_IT(&htim2);
 		HAL_TIM_Base_Stop_IT(&htim4);
@@ -203,8 +200,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
  * @brief  The application entry point.
  * @retval int
  */
-int main(void)
-{
+int main(void) {
 	/* USER CODE BEGIN 1 */
 
 	/* USER CODE END 1 */
@@ -237,7 +233,6 @@ int main(void)
 	/* USER CODE BEGIN 2 */
 
 	//PWM
-
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 	HAL_UART_Receive_IT(&huart3, (uint8_t*) msg_str, strlen("999"));
@@ -246,7 +241,6 @@ int main(void)
 
 	HAL_TIM_Base_Start_IT(&htim2);
 	HAL_TIM_Base_Start_IT(&htim4);
-
 
 	/* USER CODE END 2 */
 
@@ -265,11 +259,10 @@ int main(void)
  * @brief System Clock Configuration
  * @retval None
  */
-void SystemClock_Config(void)
-{
-	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-	RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+void SystemClock_Config(void) {
+	RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
+	RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = { 0 };
 
 	/** Configure LSE Drive Capability
 	 */
@@ -289,42 +282,37 @@ void SystemClock_Config(void)
 	RCC_OscInitStruct.PLL.PLLN = 72;
 	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
 	RCC_OscInitStruct.PLL.PLLQ = 3;
-	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-	{
+	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
 		Error_Handler();
 	}
 	/** Initializes the CPU, AHB and APB buses clocks
 	 */
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-			|RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
+			| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
 	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
 	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
 	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
 	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
-	{
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) {
 		Error_Handler();
 	}
-	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3|RCC_PERIPHCLK_I2C1
-			|RCC_PERIPHCLK_CLK48;
+	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3
+			| RCC_PERIPHCLK_I2C1 | RCC_PERIPHCLK_CLK48;
 	PeriphClkInitStruct.Usart3ClockSelection = RCC_USART3CLKSOURCE_PCLK1;
 	PeriphClkInitStruct.I2c1ClockSelection = RCC_I2C1CLKSOURCE_PCLK1;
 	PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48SOURCE_PLL;
-	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
-	{
+	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) {
 		Error_Handler();
 	}
 }
-
 
 /**
  * @brief USART3 Initialization Function
  * @param None
  * @retval None
  */
-static void MX_USART3_UART_Init(void)
-{
+static void MX_USART3_UART_Init(void) {
 
 	/* USER CODE BEGIN USART3_Init 0 */
 
@@ -343,8 +331,7 @@ static void MX_USART3_UART_Init(void)
 	huart3.Init.OverSampling = UART_OVERSAMPLING_16;
 	huart3.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
 	huart3.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-	if (HAL_UART_Init(&huart3) != HAL_OK)
-	{
+	if (HAL_UART_Init(&huart3) != HAL_OK) {
 		Error_Handler();
 	}
 	/* USER CODE BEGIN USART3_Init 2 */
@@ -358,8 +345,7 @@ static void MX_USART3_UART_Init(void)
  * @param None
  * @retval None
  */
-static void MX_USB_OTG_FS_PCD_Init(void)
-{
+static void MX_USB_OTG_FS_PCD_Init(void) {
 
 	/* USER CODE BEGIN USB_OTG_FS_Init 0 */
 
@@ -378,8 +364,7 @@ static void MX_USB_OTG_FS_PCD_Init(void)
 	hpcd_USB_OTG_FS.Init.lpm_enable = DISABLE;
 	hpcd_USB_OTG_FS.Init.vbus_sensing_enable = ENABLE;
 	hpcd_USB_OTG_FS.Init.use_dedicated_ep1 = DISABLE;
-	if (HAL_PCD_Init(&hpcd_USB_OTG_FS) != HAL_OK)
-	{
+	if (HAL_PCD_Init(&hpcd_USB_OTG_FS) != HAL_OK) {
 		Error_Handler();
 	}
 	/* USER CODE BEGIN USB_OTG_FS_Init 2 */
@@ -393,9 +378,8 @@ static void MX_USB_OTG_FS_PCD_Init(void)
  * @param None
  * @retval None
  */
-static void MX_GPIO_Init(void)
-{
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
+static void MX_GPIO_Init(void) {
+	GPIO_InitTypeDef GPIO_InitStruct = { 0 };
 
 	/* GPIO Ports Clock Enable */
 	__HAL_RCC_GPIOC_CLK_ENABLE();
@@ -409,14 +393,16 @@ static void MX_GPIO_Init(void)
 	HAL_GPIO_WritePin(LCD_D5_GPIO_Port, LCD_D5_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin|LCD_RS_Pin|LCD_D4_Pin
-			|LCD_D6_Pin|LD2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOB,
+			LD1_Pin | LD3_Pin | LCD_RS_Pin | LCD_D4_Pin | LCD_D6_Pin | LD2_Pin,
+			GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin,
+			GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOC, LCD_E_Pin|LCD_D7_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOC, LCD_E_Pin | LCD_D7_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin : USER_Btn_Pin */
 	GPIO_InitStruct.Pin = USER_Btn_Pin;
@@ -425,7 +411,7 @@ static void MX_GPIO_Init(void)
 	HAL_GPIO_Init(USER_Btn_GPIO_Port, &GPIO_InitStruct);
 
 	/*Configure GPIO pins : RMII_MDC_Pin RMII_RXD0_Pin RMII_RXD1_Pin */
-	GPIO_InitStruct.Pin = RMII_MDC_Pin|RMII_RXD0_Pin|RMII_RXD1_Pin;
+	GPIO_InitStruct.Pin = RMII_MDC_Pin | RMII_RXD0_Pin | RMII_RXD1_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -433,7 +419,7 @@ static void MX_GPIO_Init(void)
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
 	/*Configure GPIO pins : RMII_REF_CLK_Pin RMII_MDIO_Pin RMII_CRS_DV_Pin */
-	GPIO_InitStruct.Pin = RMII_REF_CLK_Pin|RMII_MDIO_Pin|RMII_CRS_DV_Pin;
+	GPIO_InitStruct.Pin = RMII_REF_CLK_Pin | RMII_MDIO_Pin | RMII_CRS_DV_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -448,9 +434,9 @@ static void MX_GPIO_Init(void)
 	HAL_GPIO_Init(LCD_D5_GPIO_Port, &GPIO_InitStruct);
 
 	/*Configure GPIO pins : LD1_Pin LD3_Pin LCD_RS_Pin LCD_D4_Pin
-                           LCD_D6_Pin LD2_Pin */
-	GPIO_InitStruct.Pin = LD1_Pin|LD3_Pin|LCD_RS_Pin|LCD_D4_Pin
-			|LCD_D6_Pin|LD2_Pin;
+	 LCD_D6_Pin LD2_Pin */
+	GPIO_InitStruct.Pin = LD1_Pin | LD3_Pin | LCD_RS_Pin | LCD_D4_Pin
+			| LCD_D6_Pin | LD2_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -478,14 +464,14 @@ static void MX_GPIO_Init(void)
 	HAL_GPIO_Init(USB_OverCurrent_GPIO_Port, &GPIO_InitStruct);
 
 	/*Configure GPIO pins : LCD_E_Pin LCD_D7_Pin */
-	GPIO_InitStruct.Pin = LCD_E_Pin|LCD_D7_Pin;
+	GPIO_InitStruct.Pin = LCD_E_Pin | LCD_D7_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
 	/*Configure GPIO pins : RMII_TX_EN_Pin RMII_TXD0_Pin */
-	GPIO_InitStruct.Pin = RMII_TX_EN_Pin|RMII_TXD0_Pin;
+	GPIO_InitStruct.Pin = RMII_TX_EN_Pin | RMII_TXD0_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -506,8 +492,7 @@ static void MX_GPIO_Init(void)
  * @brief  This function is executed in case of error occurrence.
  * @retval None
  */
-void Error_Handler(void)
-{
+void Error_Handler(void) {
 	/* USER CODE BEGIN Error_Handler_Debug */
 	/* User can add his own implementation to report the HAL error return state */
 	__disable_irq();
