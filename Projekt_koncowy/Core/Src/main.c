@@ -31,6 +31,7 @@
 #include "tim.h"
 #include "lcd.h"
 #include "lcd_config.h"
+#include "pid.h"
 
 /* USER CODE END Includes */
 
@@ -41,8 +42,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-BH1750_HandleTypeDef *hbh1750 = &hbh1750_1;
-LCD_HandleTypeDef hlcd1;
+
+#define MAX_LENGTH 30
 
 /* USER CODE END PD */
 
@@ -66,26 +67,15 @@ PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
 /* USER CODE BEGIN PV */
 
-typedef struct {
-	float Kp;
-	float Ki;
-	float Kd;
-	float dt;
-} pid_parametrs_t;
-
-typedef struct {
-	pid_parametrs_t p;
-	float previous_error, previous_integral;
-} pid;
-
-uint16_t wypelnienie_PWM = 100;
+BH1750_HandleTypeDef *hbh1750 = &hbh1750_1;
+LCD_HandleTypeDef hlcd1;
 
 pid pid1 = { .p.Kp = 0.5, .p.Ki = 1, .p.Kd = 0, .p.dt = 0.1,
 		.previous_error = 0, .previous_integral = 0 };
 
+uint16_t wypelnienie_PWM = 100;
 float set_point = 100.0;
 float light = 0;
-#define MAX_LENGTH 30
 char text[MAX_LENGTH];
 char msg_str[32];
 _Bool uart_flag = 1;
@@ -111,38 +101,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 		uart_flag = !uart_flag;
 		HAL_UART_Receive_IT(&huart3, (uint8_t*) msg_str, strlen("999"));
 	}
-}
-
-float calculate_discrete_pid(pid *pid, float setpoint, float measured) {
-	float u = 0, P, I, D, error, integral, derivative;
-
-	error = setpoint - measured;
-
-	//proportional part
-	P = pid->p.Kp * error;
-
-	//integral part
-	integral = pid->previous_integral + (error + pid->previous_error); //numerical integrator without anti-windup
-	pid->previous_integral = integral;
-	I = pid->p.Ki * integral * (pid->p.dt / 2.0);
-
-	//derivative part
-	derivative = (error - pid->previous_error) / pid->p.dt; //numerical derivative without filter
-	pid->previous_error = error;
-	D = pid->p.Kd * derivative;
-
-	//sum of all parts
-	u = P + I + D; //without saturation
-
-	float u_sat = 0;
-	if (u < 0)
-		u_sat = 0;
-	else if (u > 1998)
-		u_sat = 1998;
-	else
-		u_sat = u;
-
-	return u_sat;
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
@@ -232,7 +190,6 @@ int main(void) {
 	MX_TIM4_Init();
 	/* USER CODE BEGIN 2 */
 
-	//PWM
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 	HAL_UART_Receive_IT(&huart3, (uint8_t*) msg_str, strlen("999"));
@@ -469,6 +426,18 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+	/*Configure GPIO pins : PD3 PD4 */
+	GPIO_InitStruct.Pin = GPIO_PIN_3 | GPIO_PIN_4;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+	/*Configure GPIO pin : PD5 */
+	GPIO_InitStruct.Pin = GPIO_PIN_5;
+	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
 	/*Configure GPIO pins : RMII_TX_EN_Pin RMII_TXD0_Pin */
 	GPIO_InitStruct.Pin = RMII_TX_EN_Pin | RMII_TXD0_Pin;

@@ -11,6 +11,7 @@ C_SRCS += \
 ../Core/Src/lcd.c \
 ../Core/Src/lcd_config.c \
 ../Core/Src/main.c \
+../Core/Src/pid.c \
 ../Core/Src/stm32f7xx_hal_msp.c \
 ../Core/Src/stm32f7xx_it.c \
 ../Core/Src/syscalls.c \
@@ -25,6 +26,7 @@ OBJS += \
 ./Core/Src/lcd.o \
 ./Core/Src/lcd_config.o \
 ./Core/Src/main.o \
+./Core/Src/pid.o \
 ./Core/Src/stm32f7xx_hal_msp.o \
 ./Core/Src/stm32f7xx_it.o \
 ./Core/Src/syscalls.o \
@@ -39,6 +41,7 @@ C_DEPS += \
 ./Core/Src/lcd.d \
 ./Core/Src/lcd_config.d \
 ./Core/Src/main.d \
+./Core/Src/pid.d \
 ./Core/Src/stm32f7xx_hal_msp.d \
 ./Core/Src/stm32f7xx_it.d \
 ./Core/Src/syscalls.d \
