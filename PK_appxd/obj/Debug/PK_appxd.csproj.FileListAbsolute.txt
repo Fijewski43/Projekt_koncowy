@@ -1,0 +1,11 @@
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\PK_appxd\PK_appxd\bin\Debug\PK_appxd.exe.config
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\PK_appxd\PK_appxd\bin\Debug\PK_appxd.exe
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\PK_appxd\PK_appxd\bin\Debug\PK_appxd.pdb
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\PK_appxd\PK_appxd\obj\Debug\PK_appxd.csproj.AssemblyReference.cache
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\PK_appxd\PK_appxd\obj\Debug\PK_appxd.csproj.SuggestedBindingRedirects.cache
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\PK_appxd\PK_appxd\obj\Debug\PK_appxd.Form1.resources
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\PK_appxd\PK_appxd\obj\Debug\PK_appxd.Properties.Resources.resources
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\PK_appxd\PK_appxd\obj\Debug\PK_appxd.csproj.GenerateResource.cache
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\PK_appxd\PK_appxd\obj\Debug\PK_appxd.csproj.CoreCompileInputs.cache
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\PK_appxd\PK_appxd\obj\Debug\PK_appxd.exe
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\PK_appxd\PK_appxd\obj\Debug\PK_appxd.pdb
