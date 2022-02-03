@@ -158,6 +158,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 		HAL_TIM_Base_Stop_IT(&htim4);
 
 		sscanf(msg_str, "%f", &set_point); // @suppress("Float formatting support")
+		for(int i=0; i<3; i++)
+		        {
+		            msg_str[i] = '\0';
+		        }
+
 		HAL_UART_Receive_IT(&huart3, (uint8_t*) msg_str, strlen("999"));
 
 		HAL_TIM_Base_Start_IT(&htim2);
