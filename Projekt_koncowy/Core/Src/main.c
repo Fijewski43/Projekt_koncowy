@@ -151,7 +151,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		__HAL_TIM_SET_AUTORELOAD(htim, 100);
 
 		LCD_SetCursor(&hlcd1, 0, 1);
-		snprintf(text, MAX_LENGTH, "%.2f", light);
+		snprintf(text, MAX_LENGTH, "%.2f", light); // @suppress("Float formatting support")
 		LCD_printf(&hlcd1, text);
 
 	}
