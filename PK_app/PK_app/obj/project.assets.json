@@ -14,11 +14,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\mgend\\source\\repos\\PK_app\\PK_app\\PK_app.csproj",
+      "projectUniqueName": "C:\\Users\\mgend\\OneDrive\\Pulpit\\Projekt_koncowy\\PK_app\\PK_app\\PK_app.csproj",
       "projectName": "PK_app",
-      "projectPath": "C:\\Users\\mgend\\source\\repos\\PK_app\\PK_app\\PK_app.csproj",
+      "projectPath": "C:\\Users\\mgend\\OneDrive\\Pulpit\\Projekt_koncowy\\PK_app\\PK_app\\PK_app.csproj",
       "packagesPath": "C:\\Users\\mgend\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\mgend\\source\\repos\\PK_app\\PK_app\\obj\\",
+      "outputPath": "C:\\Users\\mgend\\OneDrive\\Pulpit\\Projekt_koncowy\\PK_app\\PK_app\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
