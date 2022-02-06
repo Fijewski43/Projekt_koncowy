@@ -1,0 +1,11 @@
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\APKA\APKA\bin\Release\APKA.exe.config
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\APKA\APKA\bin\Release\APKA.exe
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\APKA\APKA\bin\Release\APKA.pdb
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\APKA\APKA\obj\Release\APKA.csproj.AssemblyReference.cache
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\APKA\APKA\obj\Release\APKA.csproj.SuggestedBindingRedirects.cache
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\APKA\APKA\obj\Release\APKA.Form1.resources
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\APKA\APKA\obj\Release\APKA.Properties.Resources.resources
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\APKA\APKA\obj\Release\APKA.csproj.GenerateResource.cache
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\APKA\APKA\obj\Release\APKA.csproj.CoreCompileInputs.cache
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\APKA\APKA\obj\Release\APKA.exe
+C:\Users\mgend\OneDrive\Pulpit\Aplikacja_projekt\APKA\APKA\obj\Release\APKA.pdb
