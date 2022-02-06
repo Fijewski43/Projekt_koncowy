@@ -123,7 +123,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		__HAL_TIM_SET_AUTORELOAD(htim, 100);
 
 		LCD_SetCursor(&hlcd1, 0, 1);
-		snprintf(text, MAX_LENGTH, "%.2f", light); // @suppress("Float formatting support")
+		snprintf(text, MAX_LENGTH, "READ - %.2f", light); // @suppress("Float formatting support")
+		LCD_printf(&hlcd1, text);
+
+		LCD_SetCursor(&hlcd1, 1, 1);
+		snprintf(text, MAX_LENGTH, "REF - %.2f", set_point); // @suppress("Float formatting support")
 		LCD_printf(&hlcd1, text);
 
 	}
@@ -136,7 +140,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 		float pwm_duty_f = (calculate_discrete_pid(&pid1, set_point, light));
 		uint32_t pwm_duty = (int) pwm_duty_f;
-
+		wypelnienie_PWM = pwm_duty;
 		if (pwm_duty <= 999) {
 			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, pwm_duty);
 			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
@@ -149,7 +153,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 		str_buffer[n] = '\r';
 		str_buffer[n + 1] = '\n';
+
 		HAL_UART_Transmit(&huart3, (uint8_t*) str_buffer, n + 2, 1000);
+
 	}
 }
 
