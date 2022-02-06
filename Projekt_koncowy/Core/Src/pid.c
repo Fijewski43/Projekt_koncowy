@@ -23,7 +23,7 @@
 /* Public variables ----------------------------------------------------------*/
 
 /* Public function prototypes -----------------------------------------------*/
-float calculate_discrete_pid(pid *pid, float setpoint, float measured);
+float calculate_discrete_pid(pid *pid, float setpoint, float measured, float u_sat);
 
 
 /**
@@ -33,7 +33,7 @@ float calculate_discrete_pid(pid *pid, float setpoint, float measured);
  * @param[in] float value of measurement
  * @return value of control signal
  */
-float calculate_discrete_pid(pid *pid, float setpoint, float measured) {
+float calculate_discrete_pid(pid *pid, float setpoint, float measured, float u_sat) {
 	float u = 0, P, I, D, error, integral, derivative;
 
 	error = setpoint - measured;
@@ -54,14 +54,12 @@ float calculate_discrete_pid(pid *pid, float setpoint, float measured) {
 	//sum of all parts
 	u = P + I + D; //without saturation
 
-	float u_sat = 0;
-	if (u < 0)
-		u_sat = 0;
-	else if (u > 1998)
-		u_sat = 1998;
-	else
-		u_sat = u;
 
-	return u_sat;
+	if (u < 0)
+		u = 0;
+	else if (u > u_sat)
+		u = u_sat;
+
+	return u;
 }
 

@@ -42,5 +42,5 @@ typedef struct {
  * @param[in] float value of measurement
  * @return value of control signal
  */
-float calculate_discrete_pid(pid *pid, float setpoint, float measured);
+float calculate_discrete_pid(pid *pid, float setpoint, float measured, float u_sat);
 #endif

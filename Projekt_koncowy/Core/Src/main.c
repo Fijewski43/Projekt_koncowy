@@ -138,7 +138,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 		light = BH1750_ReadIlluminance_lux(hbh1750);
 
-		float pwm_duty_f = (calculate_discrete_pid(&pid1, set_point, light));
+		float pwm_duty_f = (calculate_discrete_pid(&pid1, set_point, light, 1998));
 		uint32_t pwm_duty = (int) pwm_duty_f;
 		wypelnienie_PWM = pwm_duty;
 		if (pwm_duty <= 999) {
